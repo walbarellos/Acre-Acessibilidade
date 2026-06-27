@@ -4,6 +4,10 @@ O **Acre Acessível** é uma plataforma e widget de acessibilidade digital abert
 
 Esta solução visa dar autonomia para cidadãos com necessidades cognitivas, visuais e auditivas, trazendo um mascote interativo regional, o **Capi** (uma capivarinha simpática animada em SVG/CSS), que acompanha a navegação por voz.
 
+
+<img width="1254" height="1254" alt="31cbf289-9270-4618-91bf-bc6d9cd10924" src="https://github.com/user-attachments/assets/4674f468-fb7c-41f6-bfa3-c24c0b1cc514" />
+
+
 ---
 
 ## ✨ Funcionalidades da Fase 1 (Widget JS)
