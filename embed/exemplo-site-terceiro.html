@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Site de Terceiros — Exemplo de uso do Acre Acessível</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body>
+  <h1>Portal de Exemplo</h1>
+  <p>
+    Esta página simula um site QUALQUER (não o Acre Acessível) que decidiu
+    instalar o widget de acessibilidade colando apenas a tag de script no
+    final do body, como qualquer site faria.
+  </p>
+  <p>
+    Edital nº 12/2026: inscrições de R$ 0,00 (gratuitas) até 30/07/2026,
+    conforme Art. 5º do regulamento.
+  </p>
+
+  <!--
+    Em produção, troque o src abaixo pela URL real onde você hospedar o
+    arquivo dist-embed/acre-acessivel.js (CDN, S3, GitHub Pages, etc),
+    e ajuste data-acre-backend para a URL do seu backend de TTS.
+  -->
+  <script
+    src="../dist-embed/acre-acessivel.js"
+    data-acre-backend="http://localhost:8001"
+  ></script>
+</body>
+</html>

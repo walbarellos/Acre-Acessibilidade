@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Metas de SEO -->
+    <title>Portal de Editais Acessíveis - Governo do Estado do Acre</title>
+    <meta name="description" content="Portal demonstrativo do Acre Acessível, apresentando recursos de acessibilidade visual, auditiva e cognitiva para editais públicos e serviços do estado." />
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Ícone básico -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💚</text></svg>" />
+  </head>
+  <body>
+    <!-- Região de Anúncios para Leitores de Tela (aria-live) -->
+    <div id="sr-announcer" aria-live="assertive" aria-atomic="true" 
+         style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;"
+         role="status"></div>
+    <div id="sr-polite" aria-live="polite" aria-atomic="true"
+         style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;"
+         role="status"></div>
+
+    <!-- Barra de Acessibilidade Superior (Padrão eMAG) -->
+    <nav class="top-accessibility-bar" role="navigation" aria-label="Atalhos de acessibilidade">
+      <div class="container top-bar-container">
+        <div class="shortcuts-desc">
+          <a href="#main-content" class="skip-link" accesskey="1" aria-label="Ir diretamente para o conteúdo principal da página">Ir para o conteúdo <kbd aria-hidden="true">Alt + 1</kbd></a>
+          <span class="bar-separator" aria-hidden="true">|</span>
+          <span class="bar-shortcut-info">Menu acessibilidade: <kbd aria-label="Atalho Alt mais A">Alt + A</kbd></span>
+          <span class="bar-separator" aria-hidden="true">|</span>
+          <span class="bar-shortcut-info">Ouvir página: <kbd aria-label="Atalho Alt mais P">Alt + P</kbd></span>
+          <span class="bar-separator" aria-hidden="true">|</span>
+          <span class="bar-shortcut-info">Navegar abas: <kbd aria-label="Teclas de seta">← →</kbd></span>
+        </div>
+        <div class="state-badge">
+          <span aria-label="Portal do Governo do Estado do Acre">Estado do Acre 🇧🇷</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Cabeçalho Principal -->
+    <header class="main-header">
+      <div class="container header-container">
+        <div class="logo-area">
+          <div class="flag-icon" aria-hidden="true">
+            <!-- Representação estilizada da estrela vermelha do Acre -->
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="#ef4444">
+              <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192z"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <span class="gov-sub">Governo do Estado do Acre</span>
+            <h1 class="gov-title">Secretaria de Estado de Administração</h1>
+          </div>
+        </div>
+        <nav class="main-nav" aria-label="Menu principal">
+          <ul>
+            <li><a href="#" class="active">Início</a></li>
+            <li><a href="#editais-section">Editais</a></li>
+            <li><a href="#noticias-section">Notícias</a></li>
+            <li><a href="#sobre-section">Sobre o Projeto</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Banner Destaque / Hero -->
+    <section class="hero-banner">
+      <div class="container hero-container">
+        <div class="hero-text-content">
+          <span class="badge">Inovação Social</span>
+          <h2>Editais Públicos Acessíveis em Linguagem Simples</h2>
+          <p>O Acre é o primeiro estado a adotar uma plataforma 100% aberta, inclusiva e focada em acessibilidade cognitiva, visual e auditiva. Conheça a inteligência do nosso mascote <b>Capi</b> para navegação por voz!</p>
+          <div class="hero-actions">
+            <a href="#editais-section" class="btn btn-primary">Ver Editais Acessíveis</a>
+            <a href="#sobre-section" class="btn btn-secondary">Como funciona</a>
+          </div>
+        </div>
+        <div class="hero-visual" aria-hidden="true">
+          <!-- Ilustração moderna em CSS da floresta e da capivara -->
+          <div class="forest-bg">
+            <div class="sun"></div>
+            <div class="tree tree1"></div>
+            <div class="tree tree2"></div>
+            <div class="leaf leaf1">🍃</div>
+            <div class="leaf leaf2">🍂</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conteúdo Principal -->
+    <main id="main-content" class="container main-content-area">
+      
+      <!-- Seção do Edital Exemplo -->
+      <section id="editais-section" class="content-section">
+        <div class="section-header">
+          <span class="section-tag">Oportunidades</span>
+          <h3>Editais em Destaque</h3>
+          <p>Confira a versão estruturada e acessível dos editais vigentes.</p>
+        </div>
+
+        <!-- Zona de Upload de Edital para Simplificação -->
+        <div class="upload-container">
+          <div class="upload-zone" id="uploadZone" role="region" 
+               aria-label="Área para enviar edital em PDF" 
+               aria-describedby="uploadInstructions">
+            <span class="upload-icon" aria-hidden="true">📄</span>
+            <div class="upload-text">
+              <h5 id="uploadInstructions">Quer testar com outro Edital em PDF?</h5>
+              <p>Selecione um arquivo PDF de edital. O Capi vai extrair o texto, simplificar e gerar áudios narrados automaticamente!</p>
+            </div>
+            <button class="btn btn-secondary upload-btn" id="uploadBtn" 
+                    aria-describedby="uploadInstructions"
+                    aria-label="Selecionar arquivo PDF para simplificação automática">Selecionar PDF</button>
+            <input type="file" id="pdfFileInput" accept="application/pdf" style="display: none;" 
+                   aria-label="Campo de seleção de arquivo PDF"/>
+          </div>
+          <div class="upload-loading" id="uploadLoading" style="display: none;" role="status" aria-live="polite" aria-label="Processando PDF">
+            <div class="spinner" aria-hidden="true"></div>
+            <p>O Capi está lendo o PDF, convertendo para Linguagem Simples e gravando os áudios... Aguarde!</p>
+          </div>
+          <div class="upload-error" id="uploadError" style="display: none;" role="alert" aria-live="assertive">
+            <p>⚠️ Ocorreu um erro ao processar o PDF. Certifique-se de que o arquivo é legível e que o backend na porta 8001 está ativo.</p>
+          </div>
+        </div>
+
+        <div class="edital-card">
+          <div class="edital-meta">
+            <span class="status-badge open">Inscrições Abertas</span>
+            <span class="meta-date">Publicado em: 25 Jun 2026</span>
+          </div>
+          <h4 class="edital-title">Edital SEAD Nº 04/2026 – Concurso para Agentes de Saúde e Saneamento</h4>
+          <p class="edital-desc">Este edital visa o preenchimento de vagas para atuação nos municípios de Rio Branco, Cruzeiro do Sul e Sena Madureira.</p>
+
+          <!-- Componente de Abas Acessíveis (Tabs) -->
+          <div class="tab-container">
+            <div class="tab-list" role="tablist" aria-label="Seções do Edital — Use as teclas de seta para navegar entre as abas">
+              <button class="tab-btn active" role="tab" aria-selected="true" aria-controls="painel-resumo" id="tab-resumo" tabindex="0">Linguagem Simples</button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="painel-cronograma" id="tab-cronograma" tabindex="-1">Cronograma</button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="painel-requisitos" id="tab-requisitos" tabindex="-1">Requisitos &amp; Checklist</button>
+              <button class="tab-btn" role="tab" aria-selected="false" aria-controls="painel-faq" id="tab-faq" tabindex="-1">Perguntas Frequentes (FAQ)</button>
+            </div>
+
+            <!-- Painel 1: Linguagem Simples -->
+            <div class="tab-panel active" id="painel-resumo" role="tabpanel" aria-labelledby="tab-resumo" tabindex="0">
+              <h5>Resumo do Edital (Linguagem de Fácil Leitura)</h5>
+              <p>Este concurso serve para contratar pessoas que vão trabalhar como <b>Agentes de Saúde e Saneamento</b> no Acre. O trabalho deles é ajudar a cuidar da saúde das pessoas nas casas e bairros.</p>
+              <p>O salário inicial é de <b>R$ 2.800,00</b> por mês, trabalhando 40 horas por semana.</p>
+              
+              <div class="callout-box">
+                <h6>💡 O que você precisa saber primeiro?</h6>
+                <p>As inscrições são feitas apenas pela internet e há cotas garantidas para pessoas com deficiência (PCD) e candidatos autodeclarados negros ou indígenas.</p>
+              </div>
+            </div>
+
+            <!-- Painel 2: Cronograma -->
+            <div class="tab-panel" id="painel-cronograma" role="tabpanel" aria-labelledby="tab-cronograma" tabindex="0" hidden>
+              <h5>Cronograma Simplicado</h5>
+              <p>Fique atento às principais datas do concurso para não perder nenhuma etapa importante:</p>
+              <ul class="timeline-list">
+                <li>
+                  <div class="time-badge">26/06 a 15/07</div>
+                  <div class="time-content">
+                    <h6>Período de Inscrições</h6>
+                    <p>Faça seu cadastro no site oficial da organizadora e pague a taxa (ou envie o pedido de isenção).</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="time-badge">02/08/2026</div>
+                  <div class="time-content">
+                    <h6>Divulgação dos Locais de Prova</h6>
+                    <p>O local exato onde você fará a prova escrita será divulgado na Área do Candidato.</p>
+                  </div>
+                </li>
+                <li>
+                  <div class="time-badge">16/08/2026</div>
+                  <div class="time-content">
+                    <h6>Dia da Prova Objetiva</h6>
+                    <p>As provas serão realizadas no período da manhã em Rio Branco e Cruzeiro do Sul.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Painel 3: Requisitos -->
+            <div class="tab-panel" id="painel-requisitos" role="tabpanel" aria-labelledby="tab-requisitos" tabindex="0" hidden>
+              <h5>Quem pode participar deste Concurso?</h5>
+              <p>Confira a lista de coisas obrigatórias que você precisa ter ou fazer:</p>
+              <ul class="checklist-list">
+                <li>
+                  <input type="checkbox" id="req-idade" readonly checked>
+                  <label for="req-idade">Ter 18 anos ou mais na data da contratação.</label>
+                </li>
+                <li>
+                  <input type="checkbox" id="req-ensino" readonly checked>
+                  <label for="req-ensino">Possuir Ensino Médio completo reconhecido pelo MEC.</label>
+                </li>
+                <li>
+                  <input type="checkbox" id="req-nacionalidade" readonly checked>
+                  <label for="req-nacionalidade">Ser brasileiro(a) nato(a) ou naturalizado(a).</label>
+                </li>
+                <li>
+                  <input type="checkbox" id="req-quitar" readonly checked>
+                  <label for="req-quitar">Estar em dia com as obrigações eleitorais e militares (para homens).</label>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Painel 4: FAQ -->
+            <div class="tab-panel" id="painel-faq" role="tabpanel" aria-labelledby="tab-faq" tabindex="0" hidden>
+              <h5>Dúvidas Frequentes</h5>
+              <div class="faq-group">
+                <details class="faq-item">
+                  <summary>Qual o valor da taxa de inscrição?</summary>
+                  <div class="faq-content">
+                    <p>A taxa de inscrição é de R$ 60,00 para todos os candidatos. Quem tem cadastro no CadÚnico ou é doador de sangue pode pedir isenção da taxa no início das inscrições.</p>
+                  </div>
+                </details>
+                <details class="faq-item">
+                  <summary>Como serão as provas?</summary>
+                  <div class="faq-content">
+                    <p>Será uma prova objetiva com 40 questões de múltipla escolha, contendo perguntas de Língua Portuguesa, Raciocínio Lógico, Noções de Informática e Conhecimentos Específicos sobre saúde pública.</p>
+                  </div>
+                </details>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- Seção de Notícias Gerais -->
+      <section id="noticias-section" class="content-section">
+        <div class="section-header">
+          <span class="section-tag">Atualidades</span>
+          <h3>Notícias do Estado</h3>
+          <p>Fique por dentro das últimas notícias sobre acessibilidade e inclusão.</p>
+        </div>
+
+        <div class="news-grid">
+          <!-- Card de Notícia 1 -->
+          <article class="news-card">
+            <div class="news-image news-img-1" aria-label="Foto ilustrativa de computadores acessíveis"></div>
+            <div class="news-content">
+              <span class="news-tag">Tecnologia</span>
+              <h4>Acre Acessível é lançado como solução digital para órgãos públicos</h4>
+              <p>A nova plataforma modular visa facilitar o acesso a editais estaduais para cidadãos com necessidades diversas.</p>
+              <a href="#" class="news-link">Ler notícia completa</a>
+            </div>
+          </article>
+
+          <!-- Card de Notícia 2 -->
+          <article class="news-card">
+            <div class="news-image news-img-2" aria-label="Imagem da floresta amazônica acreana"></div>
+            <div class="news-content">
+              <span class="news-tag">Inclusão</span>
+              <h4>Rio Branco sedia fórum regional de acessibilidade na Amazônia</h4>
+              <p>Evento reuniu especialistas de tecnologia assistiva, gestores públicos e representantes da sociedade civil.</p>
+              <a href="#" class="news-link">Ler notícia completa</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Seção Sobre o Projeto -->
+      <section id="sobre-section" class="content-section about-section">
+        <div class="about-grid">
+          <div class="about-text">
+            <span class="section-tag">Sobre o Projeto</span>
+            <h3>Por que o Acre Acessível?</h3>
+            <p>O Acre Acessível foi concebido como um projeto sustentável, utilizando Web Components nativos, garantindo leveza e eliminando custos de licenciamento comercial para as prefeituras e órgãos públicos do estado.</p>
+            <p>Nossa visão é dar autonomia de leitura com o <b>Capi</b>, o mascote interativo que humaniza a relação com as ferramentas de acessibilidade digitais, atraindo a atenção e guiando o usuário de forma calorosa e regional.</p>
+          </div>
+          <div class="about-specs">
+            <h5>Principais Características</h5>
+            <ul class="specs-list">
+              <li>🔋 <b>Leve e Sem Dependências:</b> Carrega rápido até em conexões móveis da floresta.</li>
+              <li>⚡ <b>Navegação por Teclado:</b> 100% acessível para leitores de tela físicos ou virtuais.</li>
+              <li>🗣️ <b>Sincronização Visual:</b> Destaca o texto sendo lido na velocidade preferida.</li>
+              <li>🔒 <b>Código Livre:</b> Licenciado sob MIT, incentivando a colaboração comunitária.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="main-footer">
+      <div class="container footer-container">
+        <div class="footer-info">
+          <div class="footer-logo">
+            <span>💚</span>
+            <div>
+              <strong>Acre Acessível</strong>
+              <p>Inclusão digital para todos os cidadãos.</p>
+            </div>
+          </div>
+          <p class="copyright">&copy; 2026 Governo do Estado do Acre. Desenvolvido sob licença MIT. Um projeto de código aberto.</p>
+        </div>
+        <div class="footer-links">
+          <h6>Links Úteis</h6>
+          <ul>
+            <li><a href="https://github.com/fem/AcreAcessivel" target="_blank">Repositório no GitHub</a></li>
+            <li><a href="https://vlibras.gov.br" target="_blank">Projeto VLibras</a></li>
+            <li><a href="https://www.gov.br/governodigital/pt-br/acessibilidade-digital" target="_blank">Diretrizes eMAG</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Script de Inicialização da Aplicação (Vite) -->
+    <script type="module" src="/src/main.ts"></script>
+    
+    <!-- Lógica de Abas do Edital e Upload de PDF -->
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. Lógica de Abas ---
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('.tab-panel');
+
+        tabs.forEach(tab => {
+          tab.addEventListener('click', () => {
+            const targetId = tab.getAttribute('aria-controls');
+            
+            // Remove active de todos os botões e painéis
+            tabs.forEach(t => {
+              t.classList.remove('active');
+              t.setAttribute('aria-selected', 'false');
+            });
+            panels.forEach(p => {
+              p.classList.remove('active');
+              p.setAttribute('hidden', '');
+            });
+
+            // Adiciona active na tab e painel clicado
+            tab.classList.add('active');
+            tab.setAttribute('aria-selected', 'true');
+            
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+              targetPanel.classList.add('active');
+              targetPanel.removeAttribute('hidden');
+            }
+          });
+        });
+
+        // --- 2. Lógica de Upload do PDF ---
+        const uploadZone = document.getElementById('uploadZone');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('pdfFileInput');
+        const uploadLoading = document.getElementById('uploadLoading');
+        const uploadError = document.getElementById('uploadError');
+
+        // Abre seleção de arquivo
+        uploadBtn.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('click', (e) => {
+          if (e.target !== uploadBtn && e.target.tagName !== 'BUTTON') {
+            fileInput.click();
+          }
+        });
+
+        // Evento de Drag & Drop
+        uploadZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+          uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone.classList.remove('dragover');
+          if (e.dataTransfer.files.length > 0) {
+            enviarPDF(e.dataTransfer.files[0]);
+          }
+        });
+
+        // Evento de Seleção de Arquivo
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files.length > 0) {
+            enviarPDF(e.target.files[0]);
+          }
+        });
+
+        // Função para disparar requisição ao backend
+        function enviarPDF(file) {
+          if (file.type !== 'application/pdf') {
+            alert('Por favor, envie apenas arquivos em formato PDF.');
+            return;
+          }
+
+          // Reseta erros e exibe loader
+          uploadError.style.display = 'none';
+          uploadZone.style.display = 'none';
+          uploadLoading.style.display = 'flex';
+
+          // Prepara dados
+          const formData = new FormData();
+          formData.append('file', file);
+
+          // API local do FastAPI
+          fetch('http://localhost:8001/api/process-pdf', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Erro na resposta do servidor.');
+            }
+            return response.json();
+          })
+          .then(data => {
+            atualizarInterfaceEdital(data);
+            uploadLoading.style.display = 'none';
+            uploadZone.style.display = 'flex';
+            
+            // Foca na aba inicial após carregar
+            const tabResumo = document.getElementById('tab-resumo');
+            if (tabResumo) tabResumo.click();
+          })
+          .catch(err => {
+            console.error(err);
+            uploadLoading.style.display = 'none';
+            uploadZone.style.display = 'flex';
+            uploadError.style.display = 'block';
+          });
+        }
+
+        // Função para atualizar dinamicamente o DOM com o Edital Simplificado e Áudios
+        function atualizarInterfaceEdital(dados) {
+          // 1. Título
+          const tituloEl = document.querySelector('.edital-title');
+          if (tituloEl) tituloEl.textContent = dados.titulo;
+
+          // 2. Resumo
+          const resumoPanel = document.getElementById('painel-resumo');
+          if (resumoPanel) {
+            let audioHtml = dados.audios?.resumo ? `
+              <div class="audio-player-wrapper">
+                <p class="audio-label">🎧 Ouvir áudio em Linguagem Simples:</p>
+                <audio controls lang="pt-BR" src="\${dados.audios.resumo}" class="edital-audio-player"></audio>
+              </div>` : '';
+            resumoPanel.innerHTML = `
+              <h5>Resumo do Edital (Linguagem de Fácil Leitura)</h5>
+              ${audioHtml}
+              ${dados.resumo}
+            `;
+          }
+
+          // 3. Cronograma
+          const cronoPanel = document.getElementById('painel-cronograma');
+          if (cronoPanel) {
+            let audioHtml = dados.audios?.cronograma ? `
+              <div class="audio-player-wrapper">
+                <p class="audio-label">🎧 Ouvir áudio do Cronograma:</p>
+                <audio controls lang="pt-BR" src="\${dados.audios.cronograma}" class="edital-audio-player"></audio>
+              </div>` : '';
+            let listHtml = '<ul class="timeline-list">';
+            dados.cronograma.forEach(item => {
+              listHtml += `
+                <li>
+                  <div class="time-badge">${item.data}</div>
+                  <div class="time-content">
+                    <h6>${item.evento}</h6>
+                  </div>
+                </li>
+              `;
+            });
+            listHtml += '</ul>';
+            cronoPanel.innerHTML = `
+              <h5>Cronograma Simplificado</h5>
+              ${audioHtml}
+              <p>Fique atento às principais datas extraídas:</p>
+              ${listHtml}
+            `;
+          }
+
+          // 4. Requisitos
+          const reqPanel = document.getElementById('painel-requisitos');
+          if (reqPanel) {
+            let audioHtml = dados.audios?.requisitos ? `
+              <div class="audio-player-wrapper">
+                <p class="audio-label">🎧 Ouvir áudio de Requisitos:</p>
+                <audio controls lang="pt-BR" src="\${dados.audios.requisitos}" class="edital-audio-player"></audio>
+              </div>` : '';
+            let listHtml = '<ul class="checklist-list">';
+            dados.requisitos.forEach((item, index) => {
+              listHtml += `
+                <li>
+                  <input type="checkbox" id="req-dyn-${index}" readonly checked>
+                  <label for="req-dyn-${index}">${item}</label>
+                </li>
+              `;
+            });
+            listHtml += '</ul>';
+            reqPanel.innerHTML = `
+              <h5>Quem pode participar deste Concurso?</h5>
+              ${audioHtml}
+              <p>Confira a lista de requisitos básicos identificados:</p>
+              ${listHtml}
+            `;
+          }
+
+          // 5. FAQ
+          const faqPanel = document.getElementById('painel-faq');
+          if (faqPanel) {
+            let audioHtml = dados.audios?.faq ? `
+              <div class="audio-player-wrapper">
+                <p class="audio-label">🎧 Ouvir áudio do FAQ:</p>
+                <audio controls lang="pt-BR" src="\${dados.audios.faq}" class="edital-audio-player"></audio>
+              </div>` : '';
+            let listHtml = '<div class="faq-group">';
+            dados.faq.forEach(item => {
+              listHtml += `
+                <details class="faq-item">
+                  <summary>${item.pergunta}</summary>
+                  <div class="faq-content">
+                    <p>${item.resposta}</p>
+                  </div>
+                </details>
+              `;
+            });
+            listHtml += '</div>';
+            faqPanel.innerHTML = `
+              <h5>Dúvidas Frequentes</h5>
+              ${audioHtml}
+              ${listHtml}
+            `;
+          }
+        }
+      });
+    </script>
+  
+    <!-- Script de Acessibilidade Aprimorado (WCAG 2.1 AA / eMAG) -->
+    <script>
+    (function() {
+      'use strict';
+
+      // ===== 1. ANÚNCIO DE BOAS-VINDAS AO CARREGAR =====
+      function srAnnounce(msg, urgent) {
+        var el = document.getElementById(urgent ? 'sr-announcer' : 'sr-polite');
+        if (!el) return;
+        el.textContent = '';
+        setTimeout(function() { el.textContent = msg; }, 50);
+      }
+
+      // Saudação por aria-live na abertura da página (funciona sem interação do usuário para leitores de tela)
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          srAnnounce(
+            'Bem-vindo ao Portal de Editais Acessíveis do Governo do Estado do Acre. ' +
+            'Esta página possui recursos de acessibilidade. ' +
+            'Pressione Alt mais A para abrir o menu de acessibilidade. ' +
+            'Pressione Alt mais P para iniciar a leitura da página em voz alta. ' +
+            'Use Tab para navegar entre os elementos da página.',
+            false
+          );
+        }, 800);
+      });
+
+      // ===== 2. NAVEGAÇÃO DE ABAS COM SETAS (ARIA tablist pattern) =====
+      document.addEventListener('DOMContentLoaded', function() {
+        var tablist = document.querySelector('[role="tablist"]');
+        if (!tablist) return;
+
+        tablist.addEventListener('keydown', function(e) {
+          var tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+          var currentIdx = tabs.findIndex(function(t) { return t === document.activeElement; });
+          if (currentIdx === -1) return;
+
+          var newIdx = currentIdx;
+
+          switch(e.key) {
+            case 'ArrowRight':
+            case 'ArrowDown':
+              e.preventDefault();
+              newIdx = (currentIdx + 1) % tabs.length;
+              break;
+            case 'ArrowLeft':
+            case 'ArrowUp':
+              e.preventDefault();
+              newIdx = (currentIdx - 1 + tabs.length) % tabs.length;
+              break;
+            case 'Home':
+              e.preventDefault();
+              newIdx = 0;
+              break;
+            case 'End':
+              e.preventDefault();
+              newIdx = tabs.length - 1;
+              break;
+            case 'Enter':
+            case ' ':
+              e.preventDefault();
+              tabs[currentIdx].click();
+              return;
+            default:
+              return;
+          }
+
+          // Move foco e ativa a aba
+          tabs.forEach(function(t, i) {
+            t.setAttribute('tabindex', i === newIdx ? '0' : '-1');
+          });
+          tabs[newIdx].focus();
+          tabs[newIdx].click();
+        });
+
+        // Garante que ao clicar numa aba o tabindex é corrigido
+        tablist.addEventListener('click', function(e) {
+          var tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+          var clickedTab = e.target.closest('[role="tab"]');
+          if (!clickedTab) return;
+          tabs.forEach(function(t) {
+            t.setAttribute('tabindex', t === clickedTab ? '0' : '-1');
+          });
+          // Anuncia a aba ativa para SR
+          srAnnounce('Aba ' + clickedTab.textContent.trim() + ' selecionada.', false);
+        });
+
+        // ===== 3. ANÚNCIO DE ESTADO DO LEITOR =====
+        // Observa mudanças no botão play/pause para anunciar
+        var observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(m) {
+            if (m.type === 'attributes' && m.attributeName === 'title') {
+              var btn = m.target;
+              srAnnounce(btn.getAttribute('title') || btn.textContent, true);
+            }
+          });
+        });
+
+        setTimeout(function() {
+          // O play button fica dentro do shadow DOM, precisamos observar mudanças via evento
+          document.addEventListener('acre:voice:state', function(e) {
+            var state = e.detail && e.detail.state;
+            if (state === 'speaking') srAnnounce('Leitura iniciada pelo Capi.', false);
+            else if (state === 'paused') srAnnounce('Leitura pausada.', false);
+            else if (state === 'idle') srAnnounce('Leitura encerrada.', false);
+          });
+
+          // Escuta o estado do VLibras
+          document.addEventListener('acre:libras:state', function(e) {
+            var active = e.detail && e.detail.active;
+            srAnnounce(active ? 'Tradução em Libras ativada.' : 'Tradução em Libras desativada.', false);
+          });
+        }, 500);
+
+        // ===== 4. SKIP LINK APRIMORADO =====
+        var skipLink = document.querySelector('.skip-link');
+        if (skipLink) {
+          skipLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            var target = document.getElementById('main-content');
+            if (target) {
+              target.setAttribute('tabindex', '-1');
+              target.focus();
+              target.removeAttribute('tabindex');
+              srAnnounce('Você está no conteúdo principal da página.', false);
+            }
+          });
+        }
+
+        // ===== 5. FOCUS-VISIBLE PARA TECLADO =====
+        // Adiciona classe 'keyboard-nav' ao body quando usuário usa teclado
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Tab') {
+            document.body.classList.add('keyboard-nav');
+          }
+        });
+        document.addEventListener('mousedown', function() {
+          document.body.classList.remove('keyboard-nav');
+        });
+
+        // ===== 6. TRAP DE FOCO NO DRAWER (quando painel de acessibilidade abre) =====
+        // O drawer vive no Shadow DOM do web component — mas podemos observar teclas Escape
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') {
+            // Fecha o painel se estiver aberto (dispara evento customizado)
+            var panel = document.querySelector('acre-accessibility-panel');
+            if (panel) {
+              panel.dispatchEvent(new CustomEvent('close-panel', { bubbles: true, composed: true }));
+            }
+          }
+        });
+
+        // ===== 7. ANÚNCIO DE UPLOAD =====
+        var uploadBtn = document.getElementById('uploadBtn');
+        var fileInput = document.getElementById('pdfFileInput');
+        var uploadLoading = document.getElementById('uploadLoading');
+
+        if (fileInput) {
+          fileInput.addEventListener('change', function() {
+            if (fileInput.files && fileInput.files.length > 0) {
+              srAnnounce('Arquivo ' + fileInput.files[0].name + ' selecionado. Processando...', false);
+            }
+          });
+        }
+
+        // Observer para detectar quando loading aparece/some
+        if (uploadLoading) {
+          var uploadObserver = new MutationObserver(function() {
+            if (uploadLoading.style.display !== 'none' && uploadLoading.style.display !== '') {
+              srAnnounce('O Capi está processando seu edital. Por favor, aguarde.', false);
+            }
+          });
+          uploadObserver.observe(uploadLoading, { attributes: true, attributeFilter: ['style'] });
+        }
+
+        // ===== 8. ARIA-EXPANDED NO ACCORDION FAQ =====
+        document.querySelectorAll('details.faq-item').forEach(function(details) {
+          var summary = details.querySelector('summary');
+          if (!summary) return;
+          summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+          details.addEventListener('toggle', function() {
+            summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+            if (details.open) {
+              srAnnounce(summary.textContent.trim() + '. Expandido.', false);
+            }
+          });
+        });
+
+        // ===== 9. FOCUS INDICATOR NOS NEWS CARDS =====
+        document.querySelectorAll('.news-link, .btn, a').forEach(function(el) {
+          // Garante role e aria corretos
+          if (el.tagName === 'A' && !el.getAttribute('role') && !el.getAttribute('href')) {
+            el.setAttribute('role', 'button');
+            el.setAttribute('tabindex', '0');
+          }
+        });
+
+        // ===== 10. ANÚNCIA MUDANÇA DE ABA NO EDITAL (para cego que navegou via seta) =====
+        document.querySelectorAll('.tab-panel').forEach(function(panel) {
+          var obs = new MutationObserver(function(muts) {
+            muts.forEach(function(m) {
+              if (m.type === 'attributes' && m.attributeName === 'hidden') {
+                if (!panel.hasAttribute('hidden')) {
+                  var heading = panel.querySelector('h5');
+                  if (heading) {
+                    srAnnounce('Seção aberta: ' + heading.textContent.trim(), false);
+                  }
+                }
+              }
+            });
+          });
+          obs.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+        });
+
+      }); // fim DOMContentLoaded
+    })();
+    </script>
+
+    <!-- Estilos de Foco para Navegação por Teclado (WCAG 2.1 AA) -->
+    <style>
+      /* Focus-visible nítido para todos os elementos interativos */
+      .keyboard-nav *:focus {
+        outline: 3px solid #1b4332 !important;
+        outline-offset: 3px !important;
+        box-shadow: 0 0 0 5px rgba(27, 67, 50, 0.25) !important;
+        border-radius: 3px;
+      }
+
+      .keyboard-nav *:focus:not(:focus-visible) {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+
+      /* Skip link visível quando em foco */
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        z-index: 9999;
+        background: #1b4332;
+        color: #fff;
+        padding: 8px 16px;
+        text-decoration: none;
+        font-weight: 700;
+        border-radius: 0 0 4px 4px;
+      }
+
+      .skip-link:focus {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        height: auto;
+        overflow: visible;
+        outline: 3px solid #fff !important;
+        outline-offset: 2px !important;
+      }
+
+      /* Alto contraste: foco amarelo */
+      .acre-high-contrast-mode.keyboard-nav *:focus {
+        outline: 3px solid #FFFF00 !important;
+        outline-offset: 3px !important;
+        box-shadow: 0 0 0 5px rgba(255, 255, 0, 0.4) !important;
+      }
+
+      /* Tabs: destaque de foco para leitores de tela */
+      [role="tab"]:focus {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Garante que main-content pode receber foco temporário para skip link */
+      #main-content:focus {
+        outline: none;
+      }
+    </style>
+
+  </body>
+</html>
