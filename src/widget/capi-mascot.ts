@@ -121,8 +121,13 @@ export class CapiMascot extends HTMLElement {
       animation: float 4s ease-in-out infinite;
     }
 
-    .eye-group {
+    .eye-group-left {
       transform-origin: 35px 43px;
+      animation: blink 5s infinite;
+    }
+
+    .eye-group-right {
+      transform-origin: 58px 43px;
       animation: blink 5s infinite;
     }
 
@@ -271,21 +276,27 @@ export class CapiMascot extends HTMLElement {
     <ellipse cx="37" cy="60" rx="4" ry="3" class="cheek" />
 
     <!-- Olho Esquerdo (visível de perfil de 3/4) -->
-    <g class="eye-group">
+    <g class="eye-group-left">
     <ellipse cx="35" cy="43" rx="3.5" ry="4.5" class="eye" />
     <circle cx="33.5" cy="41.5" r="1.2" class="eye-shine" />
+    </g>
+
+    <!-- Olho Direito (faltava — a lente direita dos óculos ficava "flutuando" sem olho por baixo) -->
+    <g class="eye-group-right">
+    <ellipse cx="58" cy="43" rx="3.2" ry="4" class="eye" />
+    <circle cx="56.7" cy="41.5" r="1" class="eye-shine" />
     </g>
 
     <!-- Óculos (Aparecem quando o estado é 'reading') -->
     <g class="glasses">
     <!-- Lente e Armação da Esquerda -->
-    <circle cx="34" cy="43" r="8" class="glasses-lens" />
-    <circle cx="34" cy="43" r="8" class="glasses-frame" />
+    <circle cx="35" cy="43" r="8" class="glasses-lens" />
+    <circle cx="35" cy="43" r="8" class="glasses-frame" />
     <!-- Ponte dos óculos -->
-    <path d="M 42 43 Q 46 40 50 44" class="glasses-frame" />
-    <!-- Lente e Armação da Direita -->
-    <circle cx="58" cy="45" r="8" class="glasses-lens" />
-    <circle cx="58" cy="45" r="8" class="glasses-frame" />
+    <path d="M 43 43 Q 47 41 51 43" class="glasses-frame" />
+    <!-- Lente e Armação da Direita (raio levemente menor para não sobrepor a base da orelha direita) -->
+    <circle cx="58" cy="44" r="7.3" class="glasses-lens" />
+    <circle cx="58" cy="44" r="7.3" class="glasses-frame" />
     </g>
 
     <!-- Nariz de Capivara -->

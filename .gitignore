@@ -24,11 +24,3 @@ extension/widget-bundle.js
 *.njsproj
 *.sln
 *.sw?
-
-# Python & Backend
-backend/.venv/
-backend/app/temp/
-__pycache__/
-*.pyc
-*.zip
-
