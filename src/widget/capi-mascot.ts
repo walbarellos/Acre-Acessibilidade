@@ -6,6 +6,15 @@
 export class CapiMascot extends HTMLElement {
   private shadow: ShadowRoot;
   private isMuted: boolean = false;
+  private isExpanded: boolean = false;
+  private greetTimeoutId: number | null = null;
+  private pressTimeoutId: number | null = null;
+  private readonly handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.preventDefault();
+      this.activate();
+    }
+  };
 
   constructor() {
     super();
@@ -26,13 +35,24 @@ export class CapiMascot extends HTMLElement {
   }
 
   connectedCallback() {
-    this.setAttribute('role', 'img');
-    this.setAttribute('aria-label', 'Capi, a capivara mascote do Acre Acessível. Clique para abrir o menu de acessibilidade.');
+    // role="button" (não "img"): o elemento é interativo e abre um menu,
+    // então leitores de tela precisam anunciá-lo como acionável.
+    this.setAttribute('role', 'button');
+    this.setAttribute('aria-haspopup', 'menu');
+    this.setAttribute('aria-expanded', 'false');
+    this.setAttribute('aria-label', 'Capi, mascote do Acre Acessível. Ativar para abrir o menu de acessibilidade.');
     this.setAttribute('tabindex', '0');
     this.render();
     this.setupEvents();
+    this.addEventListener('keydown', this.handleKeydown);
     // Acena após 2s de carregamento
-    setTimeout(() => this.greet(), 2200);
+    this.greetTimeoutId = window.setTimeout(() => this.greet(), 2200);
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener('keydown', this.handleKeydown);
+    if (this.greetTimeoutId !== null) window.clearTimeout(this.greetTimeoutId);
+    if (this.pressTimeoutId !== null) window.clearTimeout(this.pressTimeoutId);
   }
 
   private render() {
@@ -46,10 +66,52 @@ export class CapiMascot extends HTMLElement {
       user-select: none;
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15));
+      /* Cores da Bandeira do Acre (aproximação, sem hex oficial publicado em lei) */
+      --ac-green: #0d8a3e;
+      --ac-yellow: #ffd400;
+      --ac-red: #d62828;
     }
 
     :host(:hover) {
       transform: scale(1.1) translateY(-5px);
+    }
+
+    :host(:focus-visible) {
+      outline: none;
+      transform: scale(1.06) translateY(-3px);
+    }
+
+    /* Anel de foco visível — essencial num widget de acessibilidade */
+    .focus-ring {
+      fill: none;
+      stroke: var(--ac-yellow);
+      stroke-width: 0;
+      opacity: 0;
+      transition: opacity 0.15s, stroke-width 0.15s;
+    }
+
+    :host(:focus-visible) .focus-ring {
+      opacity: 1;
+      stroke-width: 3;
+      stroke-dasharray: 4 3;
+    }
+
+    :host(.pressed) {
+      transform: scale(0.94) translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host { transition: none; }
+      :host(:hover) { transform: none; }
+      .animate-float,
+      .eye-group-left,
+      .eye-group-right,
+      .ear-right,
+      .ear-left,
+      .mouth-talk,
+      :host(.greeting) {
+        animation: none !important;
+      }
     }
 
     .mascot-container {
@@ -66,15 +128,23 @@ export class CapiMascot extends HTMLElement {
     }
 
     /* Cores da Capivara */
-    .fur-body { fill: #8B5A2B; transition: fill 0.3s; }
+    .fur-body { fill: url(#furGradient); transition: fill 0.3s; }
     .fur-snout { fill: #6E4720; transition: fill 0.3s; }
-    .fur-belly { fill: #A06D3B; transition: fill 0.3s; }
+    .fur-belly { fill: url(#bellyGradient); transition: fill 0.3s; }
     .fur-ear-inner { fill: #523416; }
     .eye { fill: #222; }
     .eye-shine { fill: #FFF; }
-    .glasses-frame { stroke: #1b4332; stroke-width: 2.5; fill: none; opacity: 0; transition: opacity 0.3s, stroke 0.3s; }
-    .glasses-lens { fill: rgba(135, 206, 250, 0.15); stroke: rgba(135, 206, 250, 0.4); stroke-width: 1; opacity: 0; transition: opacity 0.3s; }
+    .glasses-frame { stroke: var(--ac-green); stroke-width: 2.5; fill: none; opacity: 0; transition: opacity 0.3s, stroke 0.3s; }
+    .glasses-lens { fill: url(#lensGradient); stroke: rgba(135, 206, 250, 0.4); stroke-width: 1; opacity: 0; transition: opacity 0.3s; }
+    .glasses-accent { fill: var(--ac-yellow); opacity: 0; transition: opacity 0.3s; }
     .cheek { fill: #FF8A8A; opacity: 0.6; }
+    .leaf-main { fill: #2d6a4f; }
+    .leaf-side { fill: #1b4332; }
+    .leaf-center { fill: #347a52; }
+    .leaf-vein { stroke: #14271c; stroke-width: 0.5; opacity: 0.5; fill: none; }
+    .ac-star { fill: var(--ac-red); }
+    .seal-ring { fill: none; stroke: url(#sealGradient); stroke-width: 2; opacity: 0.55; }
+    .seal-ring-inner { fill: none; stroke: var(--ac-yellow); stroke-width: 0.75; opacity: 0.35; stroke-dasharray: 1.5 2.5; }
 
     /* Boca */
     .mouth-idle { display: block; }
@@ -153,8 +223,10 @@ export class CapiMascot extends HTMLElement {
 
     :host([state="reading"]) .glasses-frame,
     :host([state="reading"]) .glasses-lens,
+    :host([state="reading"]) .glasses-accent,
     :host([state="speaking"]) .glasses-frame,
-    :host([state="speaking"]) .glasses-lens {
+    :host([state="speaking"]) .glasses-lens,
+    :host([state="speaking"]) .glasses-accent {
       opacity: 1;
     }
 
@@ -171,15 +243,18 @@ export class CapiMascot extends HTMLElement {
       position: absolute;
       bottom: 110px;
       right: 0px;
+      max-width: min(220px, 70vw);
+      width: max-content;
       background: white;
       border: 2px solid #1b4332;
       border-radius: 12px;
       padding: 8px 12px;
-      font-family: 'Outfit', 'Inter', sans-serif;
+      font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
       font-size: 12px;
       font-weight: 500;
+      line-height: 1.35;
       color: #1b4332;
-      white-space: nowrap;
+      white-space: normal;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
       opacity: 0;
       transform: translateY(10px) scale(0.9);
@@ -247,6 +322,34 @@ export class CapiMascot extends HTMLElement {
 
     <!-- Mascote SVG -->
     <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="furGradient" cx="40%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#A8723F" />
+        <stop offset="70%" stop-color="#8B5A2B" />
+        <stop offset="100%" stop-color="#6E4720" />
+      </radialGradient>
+      <radialGradient id="bellyGradient" cx="50%" cy="20%" r="80%">
+        <stop offset="0%" stop-color="#B98249" />
+        <stop offset="100%" stop-color="#8E5D33" />
+      </radialGradient>
+      <linearGradient id="lensGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.35)" />
+        <stop offset="55%" stop-color="rgba(135,206,250,0.12)" />
+        <stop offset="100%" stop-color="rgba(135,206,250,0.18)" />
+      </linearGradient>
+      <linearGradient id="sealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--ac-yellow)" />
+        <stop offset="100%" stop-color="var(--ac-green)" />
+      </linearGradient>
+    </defs>
+
+    <!-- Selo institucional: anel sutil ao fundo, remete a brasão/carimbo oficial -->
+    <circle cx="50" cy="58" r="48" class="seal-ring" />
+    <circle cx="50" cy="58" r="44" class="seal-ring-inner" />
+
+    <!-- Anel de foco (visível apenas via :focus-visible) -->
+    <circle cx="50" cy="58" r="52" class="focus-ring" />
+
     <!-- Patas traseiras/Corpo de baixo -->
     <ellipse cx="50" cy="98" rx="28" ry="12" class="fur-belly" />
 
@@ -294,6 +397,8 @@ export class CapiMascot extends HTMLElement {
     <circle cx="35" cy="43" r="8" class="glasses-frame" />
     <!-- Ponte dos óculos -->
     <path d="M 43 43 Q 47 41 51 43" class="glasses-frame" />
+    <!-- Micro-triângulo amarelo: eco da diagonal bandeira do Acre, discreto, só visível com a ponte -->
+    <polygon points="45.5,41.7 47,39.8 48.5,41.7" class="glasses-accent" />
     <!-- Lente e Armação da Direita (raio levemente menor para não sobrepor a base da orelha direita) -->
     <circle cx="58" cy="44" r="7.3" class="glasses-lens" />
     <circle cx="58" cy="44" r="7.3" class="glasses-frame" />
@@ -312,9 +417,18 @@ export class CapiMascot extends HTMLElement {
     <!-- Pequeno Dente de capivara aparecendo na boca falando -->
     <rect x="54.5" y="58" width="3" height="2" fill="#FFF" class="mouth-talk" style="animation: none;" />
 
-    <!-- Detalhe da Graminha no Canto (simboliza o Acre sustentável) -->
-    <path d="M 20 108 Q 15 100 8 102 Q 13 108 20 110" fill="#2d6a4f" />
-    <path d="M 23 108 Q 22 95 16 93 Q 20 105 23 110" fill="#1b4332" />
+    <!-- Folha de Seringueira (Hevea brasiliensis): 3 folíolos em leque, símbolo do extrativismo acreano -->
+    <g class="seringueira-leaf">
+    <path d="M 18 108 Q 19 92 13 86 Q 11 100 16 110 Z" class="leaf-center" />
+    <path d="M 18 108 Q 13.5 95 13 86" class="leaf-vein" />
+    <path d="M 20 108 Q 15 100 8 102 Q 13 108 20 110 Z" class="leaf-main" />
+    <path d="M 20 108.5 Q 14.5 103 8 102" class="leaf-vein" />
+    <path d="M 23 108 Q 22 95 16 93 Q 20 105 23 110 Z" class="leaf-side" />
+    <path d="M 22.7 108.5 Q 19 100 16 93" class="leaf-vein" />
+    </g>
+
+    <!-- Broche estrela vermelha (estrela solitária da bandeira do Acre), sempre visível -->
+    <path class="ac-star" transform="translate(12, -15)" d="M 50 86 L 51.18 89.82 L 55.18 89.82 L 51.9 92.09 L 53.09 95.91 L 50 93.64 L 46.91 95.91 L 48.09 92.09 L 44.82 89.82 L 48.82 89.82 Z" />
     </svg>
 
     <div class="muted-indicator" id="mutedIndicator">🔇</div>
@@ -323,13 +437,24 @@ export class CapiMascot extends HTMLElement {
   }
 
   private setupEvents() {
-    this.addEventListener('click', () => {
-      // Dispara um evento customizado que o painel principal irá escutar
-      this.dispatchEvent(new CustomEvent('toggle-panel', {
-        bubbles: true,
-        composed: true
-      }));
-    });
+    this.addEventListener('click', () => this.activate());
+  }
+
+  private activate() {
+    this.isExpanded = !this.isExpanded;
+    this.setAttribute('aria-expanded', String(this.isExpanded));
+
+    // Feedback tátil/visual rápido ao acionar
+    this.classList.add('pressed');
+    if (this.pressTimeoutId !== null) window.clearTimeout(this.pressTimeoutId);
+    this.pressTimeoutId = window.setTimeout(() => this.classList.remove('pressed'), 150);
+
+    // Dispara um evento customizado que o painel principal irá escutar
+    this.dispatchEvent(new CustomEvent('toggle-panel', {
+      bubbles: true,
+      composed: true,
+      detail: { expanded: this.isExpanded }
+    }));
   }
 
   private setMascotState(state: string) {
