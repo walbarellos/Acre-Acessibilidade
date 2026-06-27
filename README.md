@@ -68,7 +68,8 @@ limiting por IP, e limite de tamanho de texto/arquivo. Ver comentários em
 - **TypeScript** & **Vite** (Ambiente de desenvolvimento robusto)
 - **Web Components** (Shadow DOM para isolamento de CSS do widget)
 - **Vanilla CSS** (Paleta premium do Acre baseada em HSL)
-- **Web Speech API** (`SpeechSynthesis` para leitura por voz em tempo real)
+- **Web Speech API** (`SpeechSynthesis` inteligente com priorização de vozes "Natural" / "Online" gratuitas do Edge/Chrome)
+- **Edge-TTS (Python)** (Síntese de voz neural premium e gratuita baseada na nuvem Azure da Microsoft no backend, com fallback para Piper e gTTS)
 
 ---
 

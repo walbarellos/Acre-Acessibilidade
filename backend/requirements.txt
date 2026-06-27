@@ -5,3 +5,4 @@ pydantic
 python-multipart
 gTTS
 httpx
+edge-tts

@@ -60,38 +60,49 @@ class TtsService:
     def synthesize(cls, text: str, file_path: str):
         """
         Sintetiza texto em áudio de alta qualidade.
-        Tenta usar o Piper TTS (neural offline) se configurado no diretório backend,
-        caindo para o gTTS (Google Web TTS) como fallback.
+        Tenta usar o Edge-TTS (voz neural premium gratuita) primeiro.
+        Se falhar ou estiver sem rede, tenta o Piper TTS (neural offline) e,
+        por fim, o gTTS (Google Web TTS) como fallback.
         """
-        # Caminhos do Piper localizados na pasta root do backend
+        # 1. Tenta o Edge-TTS (Azure Neural grátis pelo navegador)
+        try:
+            import asyncio
+            import edge_tts
+            
+            async def run_edge_tts():
+                # pt-BR-FranciscaNeural é uma das melhores vozes em português (inflexão natural, respiração realista)
+                communicate = edge_tts.Communicate(text, "pt-BR-FranciscaNeural")
+                await communicate.save(file_path)
+                
+            logger.info(f"🗣️ Edge-TTS: Sintetizando áudio neural premium no arquivo {file_path}")
+            asyncio.run(run_edge_tts())
+            return
+        except Exception as ee:
+            logger.error(f"Falha ao executar Edge-TTS: {str(ee)}. Caindo para Piper/gTTS...")
+
+        # 2. Tenta o Piper local (neural offline)
         backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         piper_bin = os.path.join(backend_dir, "piper", "piper")
-        
-        # Procura por qualquer modelo .onnx na pasta root do backend
         model_path = os.path.join(backend_dir, "pt_BR-giselle-medium.onnx")
         
-        # Se o executável do Piper e o modelo existirem, gera áudio neural de alta fidelidade
         if os.path.exists(piper_bin) and os.path.exists(model_path):
             import subprocess
             try:
-                # Garante permissão de execução ao binário
                 if not os.access(piper_bin, os.X_OK):
                     os.chmod(piper_bin, 0o755)
                 
-                logger.info(f"🗣️ Piper TTS: Sintetizando áudio neural premium no arquivo {file_path}")
+                logger.info(f"🗣️ Piper TTS: Sintetizando áudio neural local no arquivo {file_path}")
                 cmd = [
                     piper_bin,
                     "--model", model_path,
                     "--output_file", file_path
                 ]
-                
-                # Executa o Piper enviando o texto via input buffer (stdin)
                 subprocess.run(cmd, input=text.encode('utf-8'), check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 return
             except Exception as pe:
                 logger.error(f"Falha ao executar Piper TTS: {str(pe)}. Caindo para gTTS...")
 
-        # Fallback: gTTS (Google Web TTS)
+        # 3. Fallback final: gTTS (Google Web TTS básico)
         logger.info(f"🗣️ gTTS: Sintetizando áudio local no arquivo {file_path}")
         tts = gTTS(text=text, lang='pt', tld='com.br')
         tts.save(file_path)

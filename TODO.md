@@ -21,10 +21,12 @@ O núcleo do widget (frontend isolado em Shadow DOM) e o backend de processament
 ## 🛠️ Fase 3.5 — O que foi feito nesta rodada
 
 *   **`text-normalizer.ts` / `text_normalizer.py`:** Normalizador de texto espelhado em TS (frontend) e Python (backend). Expande moeda (R$), datas, percentuais, ordinais (1º→primeiro), siglas conhecidas (IFAC, CPF, CNPJ etc.) e abreviações (Sr., Dra., Art.) antes da síntese de voz.
-*   **`voice-reader.ts` v4:** Leitura por frases (chunking) com pausa real entre elas; pitch/rate adaptados por tipo de elemento (h1/h2/p/li/blockquote); controle de Tom (pitch) exposto no painel, que antes só tinha Velocidade e Volume.
+*   **`voice-reader.ts` v4 (Seleção de Voz Inteligente):** Leitura por frases (chunking) com pausa real entre elas; controle de Tom (pitch) no painel. O seletor de voz agora prioriza automaticamente as vozes de altíssima qualidade **`Natural`** ou **`Online`** fornecidas gratuitamente na nuvem pelos navegadores (Edge/Chrome).
+*   **Backend — `edge-tts` Integrado:** Integração do `edge-tts` no serviço de síntese do backend. Agora os editais simplificados e a leitura em tempo real utilizam a voz neural ultra-realista de estúdio da Microsoft (`pt-BR-FranciscaNeural`) de forma 100% gratuita e sem chaves de API, com fallbacks automáticos locais para o **Piper TTS** e **gTTS**.
 *   **Backend — segurança:** CORS configurável via `ACRE_ALLOWED_ORIGINS` (padrão ainda `*` com warning explícito no log); rate limiting em memória por IP (30 req/min) em `/api/tts` e `/api/process-pdf`; limite de tamanho de texto (2000 chars) e de upload de PDF (10 MB).
 *   **`embed/`:** Script `<script>` de uma linha (`acre-acessivel.js`, build via `vite.config.embed.ts`) para qualquer site colar, com configuração via atributos `data-acre-backend` / `data-acre-libras` / `data-acre-auto`.
 *   **`extension/`:** Extensão Manifest V3 (Chrome/Edge/Brave) para uso pessoal — injeção controlada por toggle (não liga automaticamente em toda aba), com popup para ativar por site e configurar a URL do backend.
+
 
 ### ⚠️ Limitações conhecidas (documentadas, não bugs silenciosos)
 *   **Concordância de gênero nos ordinais:** "1ª turma" é expandido para "primeiro turma" (deveria ser "primeira"). O normalizador não faz análise gramatical de gênero — converte o número, mas não ajusta a terminação. Ajuste futuro: detectar substantivo seguinte ou manter uma lista de exceções femininas comuns (turma, vez, edição...).

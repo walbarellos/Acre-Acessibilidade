@@ -575,10 +575,25 @@ export class VoiceReader {
     if (!this.synth) return null;
     const voices = this.synth.getVoices();
     const priorities = [
-      (v: SpeechSynthesisVoice) => v.lang === 'pt-BR' && v.name.includes('Google'),
-      (v: SpeechSynthesisVoice) => v.lang === 'pt-BR' && v.name.includes('Microsoft'),
-      (v: SpeechSynthesisVoice) => v.lang === 'pt-BR',
-      (v: SpeechSynthesisVoice) => v.lang.startsWith('pt'),
+      // Vozes "Natural" ou "Online" (altíssima qualidade de nuvem gratuita oferecida pelos navegadores como Edge/Chrome)
+      (v: SpeechSynthesisVoice) => {
+        const lang = v.lang.toLowerCase().replace('_', '-');
+        return lang.startsWith('pt-br') && v.name.toLowerCase().includes('natural');
+      },
+      (v: SpeechSynthesisVoice) => {
+        const lang = v.lang.toLowerCase().replace('_', '-');
+        return lang.startsWith('pt-br') && v.name.toLowerCase().includes('online');
+      },
+      (v: SpeechSynthesisVoice) => {
+        const lang = v.lang.toLowerCase().replace('_', '-');
+        return lang.startsWith('pt-br') && v.name.includes('Google');
+      },
+      (v: SpeechSynthesisVoice) => {
+        const lang = v.lang.toLowerCase().replace('_', '-');
+        return lang.startsWith('pt-br') && v.name.includes('Microsoft');
+      },
+      (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-').startsWith('pt-br'),
+      (v: SpeechSynthesisVoice) => v.lang.toLowerCase().startsWith('pt'),
     ];
     for (const fn of priorities) {
       const found = voices.find(fn);
