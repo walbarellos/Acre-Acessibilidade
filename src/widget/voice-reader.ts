@@ -1,5 +1,5 @@
 /**
- * Acre Acessível - Leitor de Voz v5
+ * Acre Acessível - Leitor de Voz v6
  * Correções:
  * - isSequentialReading flag: bloqueia click/hover/selection durante leitura sequencial
  * - scrollIntoView removido da leitura automática (só rola ao next/prev manual)
@@ -11,6 +11,9 @@
  *   assim que o atual começa a tocar, eliminando o gap de rede entre frases (edge-tts
  *   primário tem latência de rede que o Piper local não tinha). Earcon curto (Web
  *   Audio, sem arquivo extra) avisa esperas residuais >700ms sem competir com a fala.
+ * - v6: Media Session API — botão físico de fone Bluetooth, tela de bloqueio e central
+ *   de notificações passam a controlar play/pause/next/previous, sem precisar abrir o
+ *   painel. Metadata mostra um trecho do texto atual + "Trecho X de Y" como progresso.
  */
 
 import { TextNormalizer, type SentenceChunk } from './text-normalizer';
@@ -41,7 +44,7 @@ export class VoiceReader {
   private audioPlayer: HTMLAudioElement | null = null;
 
   constructor(config: VoiceReaderConfig = {}) {
-    console.log('🦫 VoiceReader v5: Inicializando...');
+    console.log('🦫 VoiceReader v6: Inicializando...');
 
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : (null as any);
 
@@ -62,6 +65,7 @@ export class VoiceReader {
 
     this.injectHighlightStyles();
     this.detectVoiceSupport();
+    this.setupMediaSession();
   }
 
   /** Expõe se está em modo sequencial para o painel bloquear triggers externos */
@@ -228,6 +232,7 @@ export class VoiceReader {
   private updateState(state: 'idle' | 'speaking' | 'paused') {
     this.currentState = state;
     this.config.onStateChange(state);
+    this.updateMediaSessionPlaybackState(state);
     try {
       document.dispatchEvent(new CustomEvent('acre:voice:state', { detail: { state } }));
     } catch (e) {}
@@ -341,6 +346,90 @@ export class VoiceReader {
     this.config.onElementHighlight(null);
   }
 
+  // ──────────────────────────────────────────────────────────────────────────
+  // Media Session API — v6: controle remoto de hardware
+  // ──────────────────────────────────────────────────────────────────────────
+  //
+  // Conecta o leitor a botões físicos de fone Bluetooth, tela de bloqueio e
+  // central de notificações do sistema — sem precisar abrir o painel nem usar
+  // atalho de teclado. Os handlers só chamam os mesmos métodos públicos
+  // (play/pause/next/previous) que os botões do painel já usam.
+  //
+  // Limitação conhecida: no modo local (Web Speech API, sem <audio> real), o
+  // suporte do sistema pra mostrar os controles na tela de bloqueio varia por
+  // navegador — confiável no Chrome desktop/Android, inconsistente em
+  // Safari/Firefox. No modo servidor (useServerTts), como cada chunk é um
+  // <audio> de verdade tocando, a integração é mais sólida em qualquer
+  // navegador que implemente a API.
+
+  private setupMediaSession() {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) {
+      console.warn(
+        '🦫 Media Session API indisponível — controles de hardware (fone/tela de ' +
+        'bloqueio) não vão funcionar. Atalhos de teclado e botões do painel continuam normais.'
+      );
+      return;
+    }
+
+    const ms = navigator.mediaSession;
+    const safe = (action: MediaSessionAction, handler: MediaSessionActionHandler) => {
+      try {
+        ms.setActionHandler(action, handler);
+      } catch (e) {
+        // Ação específica não suportada nesse navegador — ignora só ela, não quebra o resto
+      }
+    };
+
+    safe('play', () => this.play());
+    safe('pause', () => this.pause());
+    safe('stop', () => this.stop());
+    safe('previoustrack', () => this.previous());
+    safe('nexttrack', () => this.next());
+    // Alguns fones/firmwares mandam seek em vez de track — mapeia pro mesmo lugar,
+    // já que a granularidade de navegação aqui é por elemento, não por segundos.
+    safe('seekbackward', () => this.previous());
+    safe('seekforward', () => this.next());
+  }
+
+  private updateMediaSessionPlaybackState(state: 'idle' | 'speaking' | 'paused') {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    try {
+      navigator.mediaSession.playbackState =
+        state === 'speaking' ? 'playing' : state === 'paused' ? 'paused' : 'none';
+      if (state === 'idle') {
+        navigator.mediaSession.metadata = null;
+      }
+    } catch (e) {}
+  }
+
+  /**
+   * Atualiza o que aparece na tela de bloqueio / central de notificações: um
+   * trecho do texto atual + "Trecho X de Y" como indicação de progresso.
+   * Não usa setPositionState (barra de progresso com tempo) porque não
+   * conhecemos a duração total do áudio adiantado — só a contagem de elementos.
+   */
+  private updateMediaSessionMetadata(rawText: string, index: number) {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    if (typeof MediaMetadata === 'undefined') return;
+
+    const snippet = rawText.length > 70 ? `${rawText.slice(0, 70).trim()}…` : rawText.trim();
+    const total = this.textElements.length;
+    const progress =
+      total > 0 && index >= 0 && index < total
+        ? `Trecho ${index + 1} de ${total}`
+        : 'Acre Acessível';
+
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: snippet || 'Lendo conteúdo da página',
+        artist: progress,
+        album: document.title || 'Acre Acessível',
+      });
+    } catch (e) {
+      // MediaMetadata inválido ou indisponível — não é crítico, ignora
+    }
+  }
+
   /**
    * shouldScroll = true apenas quando o usuário clicou next/prev manualmente.
    * Durante leitura automática sequencial: false (não move o mouse/viewport).
@@ -369,6 +458,8 @@ export class VoiceReader {
       }
       return;
     }
+
+    this.updateMediaSessionMetadata(rawText, index);
 
     const tag = element.tagName.toLowerCase();
     const chunks = TextNormalizer.normalizeToChunks(rawText);
@@ -490,6 +581,8 @@ export class VoiceReader {
     const rawText = this.getReadableText(element);
     if (!rawText.trim()) return;
 
+    this.updateMediaSessionMetadata(rawText, this.currentIndex);
+
     if (this.useServerTts) {
       const chunks = TextNormalizer.normalizeToChunks(rawText);
       this.readChunksViaServer(chunks, 0, this.currentIndex, () => {
@@ -514,6 +607,8 @@ export class VoiceReader {
     this.stopSpeechOnly();
     this.removeHighlight();
     if (!text.trim()) return;
+
+    this.updateMediaSessionMetadata(text, this.currentIndex);
 
     if (this.useServerTts) {
       const chunks = TextNormalizer.normalizeToChunks(text);
