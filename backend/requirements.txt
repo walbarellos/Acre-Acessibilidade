@@ -3,6 +3,5 @@ uvicorn[standard]
 pdfplumber
 pydantic
 python-multipart
-gTTS
 httpx
 edge-tts

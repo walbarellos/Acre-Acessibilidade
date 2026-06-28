@@ -1,5 +1,5 @@
 /**
- * Acre Acessível - Leitor de Voz v4
+ * Acre Acessível - Leitor de Voz v5
  * Correções:
  * - isSequentialReading flag: bloqueia click/hover/selection durante leitura sequencial
  * - scrollIntoView removido da leitura automática (só rola ao next/prev manual)
@@ -7,6 +7,10 @@
  * - v4: TextNormalizer expande números/siglas/datas antes de falar; leitura por frases
  *   (chunking) com pausas reais entre elas; pitch/rate adaptativo por tipo de elemento
  *   (título x parágrafo x item de lista) para reduzir a monotonia da voz nativa.
+ * - v5: buffering de 1 chunk adiante no modo servidor — o próximo chunk é pré-buscado
+ *   assim que o atual começa a tocar, eliminando o gap de rede entre frases (edge-tts
+ *   primário tem latência de rede que o Piper local não tinha). Earcon curto (Web
+ *   Audio, sem arquivo extra) avisa esperas residuais >700ms sem competir com a fala.
  */
 
 import { TextNormalizer, type SentenceChunk } from './text-normalizer';
@@ -37,7 +41,7 @@ export class VoiceReader {
   private audioPlayer: HTMLAudioElement | null = null;
 
   constructor(config: VoiceReaderConfig = {}) {
-    console.log('🦫 VoiceReader v4: Inicializando...');
+    console.log('🦫 VoiceReader v5: Inicializando...');
 
     this.synth = typeof window !== 'undefined' ? window.speechSynthesis : (null as any);
 
@@ -268,6 +272,15 @@ export class VoiceReader {
 
   public stop() {
     this._isSequentialReading = false;
+    this.clearWaitingFeedback();
+
+    // Aborta qualquer fetch de TTS em andamento (chunk atual + prefetch)
+    if (this._serverAbort) {
+      this._serverAbort.abort();
+      this._serverAbort = null;
+    }
+    this._prefetchedChunks.clear();
+
     if (this.audioPlayer) {
       this.audioPlayer.pause();
       this.audioPlayer = null;
@@ -305,6 +318,12 @@ export class VoiceReader {
   }
 
   private stopSpeechOnly() {
+    this.clearWaitingFeedback();
+    if (this._serverAbort) {
+      this._serverAbort.abort();
+      this._serverAbort = null;
+    }
+    this._prefetchedChunks.clear();
     if (this.audioPlayer) {
       this.audioPlayer.pause();
       this.audioPlayer = null;
@@ -358,10 +377,9 @@ export class VoiceReader {
     console.log(`🦫 [${index}] (${tag}) "${rawText.substring(0, 60)}${rawText.length > 60 ? '...' : ''}" — ${chunks.length} frase(s)`);
 
     if (this.useServerTts) {
-      // Servidor recebe o texto já normalizado, porém como bloco único (a quebra em frases
-      // com pausa fica a cargo do motor neural via pontuação real, ver backend tts.py)
-      const normalizedFull = TextNormalizer.normalize(rawText);
-      this.readViaServer(normalizedFull, () => {
+      // No modo servidor, usa os mesmos chunks normalizados (com pausas entre frases)
+      // — cada chunk vira um POST separado, mantendo prosódia equivalente ao modo local.
+      this.readChunksViaServer(chunks, 0, index, () => {
         if (this._isSequentialReading && this.currentState === 'speaking' && this.currentIndex === index) {
           this.next();
         }
@@ -473,8 +491,8 @@ export class VoiceReader {
     if (!rawText.trim()) return;
 
     if (this.useServerTts) {
-      const normalized = TextNormalizer.normalize(rawText);
-      this.readViaServer(normalized, () => {
+      const chunks = TextNormalizer.normalizeToChunks(rawText);
+      this.readChunksViaServer(chunks, 0, this.currentIndex, () => {
         this.removeHighlight();
         this.updateState('idle');
       });
@@ -498,8 +516,8 @@ export class VoiceReader {
     if (!text.trim()) return;
 
     if (this.useServerTts) {
-      const normalized = TextNormalizer.normalize(text);
-      this.readViaServer(normalized, () => this.updateState('idle'));
+      const chunks = TextNormalizer.normalizeToChunks(text);
+      this.readChunksViaServer(chunks, 0, this.currentIndex, () => this.updateState('idle'));
       return;
     }
 
@@ -514,40 +532,198 @@ export class VoiceReader {
     );
   }
 
-  private readViaServer(text: string, onEnd: () => void) {
-    if (this.audioPlayer) {
-      try {
-        this.audioPlayer.pause();
-      } catch (e) {}
-      this.audioPlayer = null;
+  /**
+   * Lê chunks via servidor usando POST (sem limite de tamanho de URL).
+   * Cada chunk é uma sentença do TextNormalizer — o servidor sintetiza cada um
+   * individualmente, a fila respeita pauseAfterMs, e AbortController garante
+   * cancelamento limpo ao chamar stop().
+   *
+   * Fluxo: fetch POST → blob → URL.createObjectURL → Audio → onended → próximo chunk.
+   * Isso é equivalente ao speakChunks() para Web Speech API, mas para áudio HTTP.
+   *
+   * v5 — buffering: assim que o áudio do chunk atual COMEÇA a tocar (onplay), o
+   * fetch do PRÓXIMO chunk já é disparado em paralelo e fica em _prefetchedChunks.
+   * Quando o atual termina, o próximo já está pronto (ou quase) — elimina o gap de
+   * rede entre frases que o edge-tts (motor primário, com latência de rede) introduz
+   * e que o Piper local (~200ms) não tinha. Um único AbortController por cadeia de
+   * leitura (criado só em chunkIdx === 0) cobre o chunk atual E o prefetch — stop()
+   * cancela os dois com uma chamada.
+   */
+  private _serverAbort: AbortController | null = null;
+  private _prefetchedChunks: Map<number, Promise<Blob>> = new Map();
+
+  private fetchChunkAudio(text: string, signal: AbortSignal): Promise<Blob> {
+    const backendUrl = this.getBackendUrl();
+    return fetch(`${backendUrl}/api/tts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+      signal,
+    }).then(res => {
+      if (!res.ok) throw new Error(`TTS HTTP ${res.status}`);
+      return res.blob();
+    });
+  }
+
+  /** Garante que o fetch do chunk já esteja em andamento (ou concluído), sem duplicar. */
+  private ensurePrefetched(
+    chunks: SentenceChunk[],
+    chunkIdx: number,
+    signal: AbortSignal,
+  ): Promise<Blob> {
+    let promise = this._prefetchedChunks.get(chunkIdx);
+    if (!promise) {
+      promise = this.fetchChunkAudio(chunks[chunkIdx].text, signal);
+      this._prefetchedChunks.set(chunkIdx, promise);
+    }
+    return promise;
+  }
+
+  private readChunksViaServer(
+    chunks: SentenceChunk[],
+    chunkIdx: number,
+    elementIndex: number,
+    onAllDone: () => void,
+  ) {
+    if (chunkIdx === 0) {
+      this.updateState('speaking');
+      this._prefetchedChunks.clear();
+      this._serverAbort = new AbortController();
     }
 
-    // Proteção defensiva: querystring tem limite prático (~2000 chars em alguns proxies/CDNs).
-    // O backend também valida (ver tts.py), mas truncar aqui evita 414/erro silencioso no cliente.
-    const MAX_TTS_CHARS = 1500;
-    const safeText = text.length > MAX_TTS_CHARS ? text.slice(0, MAX_TTS_CHARS) : text;
+    if (chunkIdx >= chunks.length) {
+      onAllDone();
+      return;
+    }
 
-    const url = `${this.getBackendUrl()}/api/tts?text=${encodeURIComponent(safeText)}`;
-    this.audioPlayer = new Audio(url);
-    this.audioPlayer.playbackRate = this.config.rate;
-    this.audioPlayer.volume = this.config.volume;
+    if (this._serverAbort?.signal.aborted) return;
+    if (this._isSequentialReading && this.currentIndex !== elementIndex) return;
 
-    this.audioPlayer.onplay = () => this.updateState('speaking');
-    this.audioPlayer.onended = () => {
-      this.audioPlayer = null;
-      onEnd();
-    };
-    this.audioPlayer.onerror = () => {
-      if (this.audioPlayer?.error?.code === 4) return;
-      console.error('🦫 Erro no áudio do servidor.');
-      this.stop();
-    };
+    const chunk = chunks[chunkIdx];
+    const signal = this._serverAbort!.signal;
 
-    this.audioPlayer.play().catch(err => {
-      if (err.name === 'AbortError') return;
-      console.error('🦫 Autoplay bloqueado:', err);
-      this.stop();
-    });
+    // Som de espera (earcon) só dispara se a resposta REALMENTE demorar — ver baixo.
+    this.startWaitingFeedback();
+
+    this.ensurePrefetched(chunks, chunkIdx, signal)
+      .then(blob => {
+        this.clearWaitingFeedback();
+        if (signal.aborted) return;
+
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.playbackRate = this.config.rate;
+        audio.volume = this.config.volume;
+
+        this.audioPlayer = audio;
+
+        // Buffering: ao começar a tocar o chunk atual, já adianta o fetch do próximo.
+        audio.onplay = () => {
+          if (signal.aborted || chunkIdx + 1 >= chunks.length) return;
+          this.ensurePrefetched(chunks, chunkIdx + 1, signal).catch(() => {
+            // Falha no prefetch não é fatal: vira um fetch normal (com earcon, se demorar)
+            // quando chegar a vez desse chunk.
+            this._prefetchedChunks.delete(chunkIdx + 1);
+          });
+        };
+
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          this.audioPlayer = null;
+          this._prefetchedChunks.delete(chunkIdx);
+          if (signal.aborted) return;
+          const next = () =>
+            this.readChunksViaServer(chunks, chunkIdx + 1, elementIndex, onAllDone);
+          chunk.pauseAfterMs > 0 ? setTimeout(next, chunk.pauseAfterMs) : next();
+        };
+
+        audio.onerror = () => {
+          URL.revokeObjectURL(url);
+          if (signal.aborted) return;
+          console.error('🦫 Erro ao reproduzir áudio do servidor.');
+          this.stop();
+        };
+
+        audio.play().catch(err => {
+          URL.revokeObjectURL(url);
+          if (err.name === 'AbortError') return;
+          console.error('🦫 Autoplay bloqueado:', err);
+          this.stop();
+        });
+      })
+      .catch(err => {
+        this.clearWaitingFeedback();
+        if (err.name === 'AbortError' || signal.aborted) return;
+        console.error('🦫 Erro no fetch TTS:', err);
+        this.stop();
+      });
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Feedback de espera (earcon) — v5
+  // ──────────────────────────────────────────────────────────────────────────
+  //
+  // Pra quem não vê tela de carregamento, silêncio sem contexto é ambíguo:
+  // travou? acabou? tá processando? Em vez de avisar por voz a cada frase (o que
+  // seria irritante e competiria com a própria leitura), um som curto e neutro
+  // soa SÓ se a espera passar de um limiar — a maioria dos chunks, com o buffer
+  // de prefetch ativo, nunca chega a disparar isso.
+
+  private _earconTimer: ReturnType<typeof setTimeout> | null = null;
+  private _earconInterval: ReturnType<typeof setInterval> | null = null;
+  private _earconCtx: AudioContext | null = null;
+
+  /** Agenda o earcon pra disparar só se a espera passar de 700ms; repete a cada 1.6s enquanto durar. */
+  private startWaitingFeedback() {
+    this.clearWaitingFeedback();
+    this._earconTimer = setTimeout(() => {
+      this.playEarcon();
+      this._earconInterval = setInterval(() => this.playEarcon(), 1600);
+    }, 700);
+  }
+
+  private clearWaitingFeedback() {
+    if (this._earconTimer) {
+      clearTimeout(this._earconTimer);
+      this._earconTimer = null;
+    }
+    if (this._earconInterval) {
+      clearInterval(this._earconInterval);
+      this._earconInterval = null;
+    }
+  }
+
+  /**
+   * Som curto e neutro (não falado) gerado via Web Audio API — sem precisar de
+   * nenhum arquivo de áudio extra no projeto. Tom suave, baixo volume relativo
+   * ao volume configurado pelo usuário, fade-in/fade-out pra não estalar.
+   */
+  private playEarcon() {
+    try {
+      if (!this._earconCtx) {
+        const AudioCtxCls: typeof AudioContext =
+          window.AudioContext || (window as any).webkitAudioContext;
+        this._earconCtx = new AudioCtxCls();
+      }
+      const ctx = this._earconCtx;
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const now = ctx.currentTime;
+      const peakGain = 0.05 * this.config.volume;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(peakGain, now + 0.03);
+      gain.gain.linearRampToValueAtTime(0, now + 0.2);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } catch (e) {
+      // Web Audio indisponível (raro) — não é crítico, ignora silenciosamente.
+    }
   }
 
   private handleSpeechError(event: any, retry: () => void) {

@@ -101,41 +101,44 @@ async def process_pdf(request: Request, file: UploadFile = File(...)):
             except Exception as e:
                 logger.error(f"Erro ao deletar arquivo temporário {temp_file_path}: {str(e)}")
 
-@app.get("/api/tts")
-def text_to_speech(text: str):
+class TtsRequest(BaseModel):
+    text: str
+
+
+@app.post("/api/tts")
+def text_to_speech(req: TtsRequest):
     """
-    Sintetiza um texto arbitrário em áudio em tempo real e retorna o stream.
-    Utilizado como fallback dinâmico para navegadores/SO sem suporte a vozes locais (como Linux).
-    A gravação é feita usando escrita atômica temporária para evitar condições de corrida (status 416).
+    Sintetiza texto em áudio e retorna o arquivo.
+
+    Mudanças em relação à versão GET:
+    - Aceita POST com JSON body → sem limite de tamanho de URL (editais de 60 páginas ok).
+    - Motor: edge-tts (Azure, melhor qualidade, requer rede) → Piper local (offline,
+      fallback automático). gTTS removido.
+    - Chunking interno no TtsService — textos longos são divididos em sentenças,
+      sintetizados e concatenados em WAV único antes de devolver.
+    - Gravação atômica via .tmp + os.replace mantida para evitar status 416.
+    - Cache por hash MD5 mantido para evitar re-síntese do mesmo trecho.
     """
     from fastapi.responses import FileResponse
     import hashlib
-    import mimetypes
-    
-    if not text or not text.strip():
+
+    text = (req.text or "").strip()
+    if not text:
         raise HTTPException(status_code=400, detail="Texto vazio ou não fornecido.")
-    
+
     try:
-        # Cria um hash MD5 do texto para evitar duplicar sínteses do mesmo texto
-        text_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
-        filename = f"tts_demand_{text_hash}.mp3"
+        text_hash = hashlib.md5(text.encode("utf-8")).hexdigest()
+        filename = f"tts_demand_{text_hash}.wav"
         file_path = os.path.join(TEMP_DIR, filename)
-        
-        # Se o áudio ainda não foi gerado, cria de forma atômica usando o serviço central de TTS
+
         if not os.path.exists(file_path):
             temp_path = f"{file_path}.tmp"
             TtsService.synthesize(text, temp_path)
-            # Substitui atomicamente (operação atômica no OS garante que o arquivo final só apareça completo)
             os.replace(temp_path, file_path)
-            
-        # Detecta o mime-type do arquivo gerado (WAV para Piper, MP3 para gTTS)
-        mime_type, _ = mimetypes.guess_type(file_path)
-        if not mime_type:
-            mime_type = "audio/mpeg"
-            
-        return FileResponse(file_path, media_type=mime_type, filename=filename)
+
+        return FileResponse(file_path, media_type="audio/wav", filename=filename)
     except Exception as e:
-        logger.error(f"Erro ao gerar TTS dinâmico: {str(e)}")
+        logger.error(f"Erro ao gerar TTS: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Erro interno de síntese: {str(e)}")
 
 def uuid_str() -> str:
