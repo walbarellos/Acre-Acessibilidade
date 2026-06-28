@@ -51,10 +51,19 @@ const KNOWN_ACRONYMS: Record<string, string> = {
   'ONG': 'ÓNGUI',
 };
 
-const ORDINAL_WORDS: Record<string, string> = {
+const ORDINAL_MASC: Record<string, string> = {
   '1': 'primeiro', '2': 'segundo', '3': 'terceiro', '4': 'quarto', '5': 'quinto',
   '6': 'sexto', '7': 'sétimo', '8': 'oitavo', '9': 'nono', '10': 'décimo',
 };
+
+const ORDINAL_FEM: Record<string, string> = {
+  '1': 'primeira', '2': 'segunda', '3': 'terceira', '4': 'quarta', '5': 'quinta',
+  '6': 'sexta', '7': 'sétima', '8': 'oitava', '9': 'nona', '10': 'décima',
+};
+
+// Substantivos femininos comuns em editais públicos que seguem um ordinal
+const FEMININE_NOUNS_PATTERN =
+  /\b(turma|vez|edição|etapa|fase|questão|rodada|vaga|semana|instância|chamada|convocação|via|cópia|série|versão)\b/i;
 
 const MONTHS = [
   'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
@@ -154,24 +163,31 @@ export class TextNormalizer {
 
   /** 1º, 2ª, Art. 5º -> "primeiro", "segunda", "Artigo quinto" (até 10; acima disso lê o numeral cardinal) */
   private static expandOrdinals(text: string): string {
-    // Caso especial: "Art. Nº" / "Artigo Nº" — captura o sufixo º/ª explicitamente.
-    // Nota: não usar \b depois de [ºª] — º/ª não são "word chars" em regex JS, então
-    // \b nunca casaria ali e o sufixo ficaria de fora do replace (bug já visto e corrigido).
+    // Caso especial: "Art. Nº" / "Artigo Nº" — sempre masculino (artigo é masc)
     text = text.replace(
       /\b(Art\.?|Artigo)\s*(\d{1,3})\s*[ºª]?/gi,
       (_m, _prefix: string, num: string) => {
-        const word = ORDINAL_WORDS[num];
+        const word = ORDINAL_MASC[num];
         return `Artigo ${word ?? num}`;
       }
     );
 
-    // Caso genérico: número seguido de º/ª (ex: "5º andar", "2ª via")
-    text = text.replace(/\b(\d{1,3})[ºª]/g, (_m, num: string) => {
-      const word = ORDINAL_WORDS[num];
+    // Caso genérico: º = masculino, ª = feminino — sufixo é a marca morfológica.
+    text = text.replace(/\b(\d{1,3})(º|ª)/g, (_m, num: string, suffix: string) => {
+      if (suffix === 'ª') {
+        const word = ORDINAL_FEM[num];
+        return word ?? `${num}ª`;
+      }
+      const word = ORDINAL_MASC[num];
       return word ?? `${num}º`;
     });
 
     return text;
+  }
+
+  /** Verifica se um texto contém substantivo feminino comum (utilitário público para testes) */
+  public static hasFeminineNoun(text: string): boolean {
+    return FEMININE_NOUNS_PATTERN.test(text);
   }
 
   /** Abreviações comuns que o motor lê errado ou de forma cortada */

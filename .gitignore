@@ -24,3 +24,29 @@ extension/widget-bundle.js
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Arquivos de áudio gerados (cache TTS — não commitar)
+backend/app/temp/*.mp3
+backend/app/temp/*.wav
+backend/app/temp/*.tmp
+backend/app/static/audio/
+
+# Modelos Piper (binários grandes — instalar localmente)
+backend/piper/
+backend/*.onnx
+backend/*.onnx.json
+
+# Cobertura de testes
+coverage/
+.nyc_output/
+htmlcov/
+

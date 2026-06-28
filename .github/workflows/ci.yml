@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Frontend: lint + build + testes unitários TS ───────────────────────────
+  frontend:
+    name: Frontend (TS/Vite)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint (TypeScript check)
+        run: npm run lint
+
+      - name: Testes unitários
+        run: npm test
+
+      - name: Build widget (embed)
+        run: npx vite build --config vite.config.embed.ts
+
+      - name: Build extensão
+        run: npx vite build --config vite.config.extension.ts
+
+  # ── Backend: testes Python ─────────────────────────────────────────────────
+  backend:
+    name: Backend (Python/FastAPI)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Instalar dependências
+        run: |
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Testes unitários Python
+        run: |
+          pytest tests/python/ -v --tb=short

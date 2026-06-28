@@ -1,5 +1,14 @@
 # Acre Acessível 🦫🍃
 
+[![CI](https://github.com/walbarellos/Acre-Acessibilidade/actions/workflows/ci.yml/badge.svg)](https://github.com/walbarellos/Acre-Acessibilidade/actions/workflows/ci.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)](https://python.org)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vitejs.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.11x-009688?logo=fastapi)](https://fastapi.tiangolo.com)
+[![eMAG](https://img.shields.io/badge/eMAG-em%20progresso-green)](https://emag.governoeletronico.gov.br/)
+[![WCAG](https://img.shields.io/badge/WCAG%202.1-AA%20(meta)-brightgreen)](https://www.w3.org/WAI/WCAG21/quickref/)
+
 O **Acre Acessível** é uma plataforma e widget de acessibilidade digital aberta, gratuita e de código livre, desenvolvida como uma alternativa moderna ao Rybena, especificamente desenhada para as necessidades de órgãos públicos do estado do Acre.
 
 Esta solução visa dar autonomia para cidadãos com necessidades cognitivas, visuais e auditivas, trazendo um mascote interativo regional, o **Capi** (uma capivarinha simpática animada em SVG/CSS), que acompanha a navegação por voz.
@@ -142,6 +151,41 @@ PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 pip install -r requirements.txt
 ```
 *A API estará online em: [http://localhost:8001](http://localhost:8001)*
 *A documentação Swagger estará disponível em: [http://localhost:8001/docs](http://localhost:8001/docs)*
+
+---
+
+## 🧪 Testes
+
+### Testes unitários TypeScript (Vitest)
+
+```bash
+# Instale as dependências
+npm install
+
+# Roda todos os testes
+npm test
+
+# Modo watch
+npm run test:watch
+
+# Com cobertura de código
+npm run test:coverage
+```
+
+### Testes unitários Python (pytest)
+
+```bash
+cd backend
+source .venv/bin/activate
+pip install pytest pytest-asyncio
+
+# Na raiz do projeto
+pytest tests/python/ -v
+```
+
+Os testes Python cobrem o `TextNormalizer` (Python) com os mesmos casos do TS,
+garantindo paridade entre as duas implementações — qualquer divergência de comportamento
+é detectada automaticamente.
 
 ---
 
